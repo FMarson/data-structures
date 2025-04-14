@@ -35,10 +35,10 @@ We’ve just launched a major update focused on **learning, usability, and desig
 Clone the repository and run the app locally:
 
 ```
-git clone https://github.com/username/data-structures-visualizer.git
+git clone https://github.com/paudefclasspy/data-structures.git
 ```
 ```
-cd data-structures-visualizer
+cd data-structures
 ```
 ```
 npm install
