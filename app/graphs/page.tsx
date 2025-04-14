@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CodeBlock } from "@/components/code-block"
-import { GraphVisualizer } from "@/components/graph-visualizer"
+import { GraphVisualizer } from "@/components/graph/graph-visualizer"
 
 export default function GraphsPage() {
   const [graph, setGraph] = useState({
@@ -69,13 +69,13 @@ export default function GraphsPage() {
       code: `  // Remove a vertex and all its connections
   removeVertex(vertex) {
     if (!this.adjacencyList[vertex]) return this;
-    
+
     // Remove all edges connected to this vertex
     while (this.adjacencyList[vertex].length) {
       const adjacentVertex = this.adjacencyList[vertex].pop();
       this.removeEdge(vertex, adjacentVertex);
     }
-    
+
     // Delete the vertex key
     delete this.adjacencyList[vertex];
     return this;
@@ -89,19 +89,19 @@ export default function GraphsPage() {
     const result = [];
     const visited = {};
     const adjacencyList = this.adjacencyList;
-    
+
     (function dfs(vertex) {
       if (!vertex) return null;
       visited[vertex] = true;
       result.push(vertex);
-      
+
       adjacencyList[vertex].forEach(neighbor => {
         if (!visited[neighbor]) {
           return dfs(neighbor);
         }
       });
     })(start);
-    
+
     return result;
   }`,
       description:
@@ -114,11 +114,11 @@ export default function GraphsPage() {
     const result = [];
     const visited = {};
     visited[start] = true;
-    
+
     while (queue.length) {
       const currentVertex = queue.shift();
       result.push(currentVertex);
-      
+
       this.adjacencyList[currentVertex].forEach(neighbor => {
         if (!visited[neighbor]) {
           visited[neighbor] = true;
@@ -126,7 +126,7 @@ export default function GraphsPage() {
         }
       });
     }
-    
+
     return result;
   }`,
       description:

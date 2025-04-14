@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CodeBlock } from "@/components/code-block"
-import { QueueVisualizer } from "@/components/queue-visualizer"
+import { QueueVisualizer } from "@/components/queue/simple-queue-visualizer"
 
 export default function QueuesPage() {
   const [queue, setQueue] = useState<number[]>([1, 2, 3, 4, 5])
@@ -37,17 +37,17 @@ export default function QueuesPage() {
     if (this.isEmpty()) {
       return "Queue underflow";
     }
-    
+
     const value = this.items[this.front];
     this.front++;
-    
+
     // Reset the queue when it becomes empty
     if (this.front > this.rear) {
       this.front = 0;
       this.rear = -1;
       this.items = [];
     }
-    
+
     return value; // O(1) constant time operation
   }`,
       description: "Dequeue operation removes the front element from the queue with O(1) time complexity.",
@@ -58,7 +58,7 @@ export default function QueuesPage() {
     if (this.isEmpty()) {
       return "Queue is empty";
     }
-    
+
     return this.items[this.front]; // O(1) constant time operation
   }`,
       description: "Peek operation returns the front element without removing it with O(1) time complexity.",

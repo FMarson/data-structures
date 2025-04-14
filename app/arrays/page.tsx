@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CodeBlock } from "@/components/code-block"
-import { ArrayVisualizer } from "@/components/array-visualizer"
+import { ArrayVisualizer } from "@/components/array/array-visualizer"
 
 export default function ArraysPage() {
   const [array, setArray] = useState<number[]>([1, 2, 3, 4, 5])
@@ -37,12 +37,12 @@ export default function ArraysPage() {
     if (index < 0 || index > arr.length) {
       return "Invalid index";
     }
-    
+
     // Shift elements to make room for the new value
     for (let i = arr.length; i > index; i--) {
       arr[i] = arr[i - 1]; // O(n) in worst case
     }
-    
+
     arr[index] = value;
     return arr;
   }`,
@@ -54,12 +54,12 @@ export default function ArraysPage() {
     if (index < 0 || index >= arr.length) {
       return "Index out of bounds";
     }
-    
+
     // Shift elements to fill the gap
     for (let i = index; i < arr.length - 1; i++) {
       arr[i] = arr[i + 1]; // O(n) in worst case
     }
-    
+
     arr.length = arr.length - 1;
     return arr;
   }`,

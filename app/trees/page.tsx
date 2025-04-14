@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CodeBlock } from "@/components/code-block"
-import { TreeVisualizer } from "@/components/tree-visualizer"
+import { BinaryTreeVisualizer as TreeVisualizer } from "@/components/binary-tree/binary-tree-visualizer"
 
 export default function TreesPage() {
   const [tree, setTree] = useState<any>({
@@ -44,17 +44,17 @@ class BinarySearchTree {
       code: `  // Insert a value into the BST
   insert(value) {
     const newNode = new TreeNode(value);
-    
+
     if (this.root === null) {
       this.root = newNode;
       return this;
     }
-    
+
     let current = this.root;
-    
+
     while (true) {
       if (value === current.value) return this;
-      
+
       if (value < current.value) {
         if (current.left === null) {
           current.left = newNode;
@@ -77,10 +77,10 @@ class BinarySearchTree {
       code: `  // Search for a value in the BST
   search(value) {
     if (this.root === null) return false;
-    
+
     let current = this.root;
     let found = false;
-    
+
     while (current && !found) {
       if (value < current.value) {
         current = current.left;
@@ -90,7 +90,7 @@ class BinarySearchTree {
         found = true;
       }
     }
-    
+
     return found;
   }`,
       description: "Search operation finds a value in the BST. Average time complexity is O(log n), worst case O(n).",
