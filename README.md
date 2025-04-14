@@ -1,23 +1,39 @@
-# Data Structures Visualizer   
+# 📊 Data Structures Visualizer
 
-An interactive web app to visualize data structures in real-time. Perfect for students and developers learning algorithms.  
+An interactive web app to visualize data structures in real-time. Perfect for students, educators, and developers learning how algorithms work under the hood.
 
-## Features  
-Visualize trees, graphs, linked lists, etc.  
-Perform insert, delete, search, and traversal operations.  
-Real-time animations and complexity analysis.  
+---
 
-# Contributing  
+## 🚀 Latest Update: Interactive Tutorials & UI Revamp
 
-Thanks for your interest in contributing! Here’s how you can help:  
+We’ve just launched a major update focused on **learning, usability, and design**!
 
-1. **Fork the repo** and create a new branch.  
-2. **Make your changes** and test them.  
-3. **Submit a pull request** with a clear description.  
+### What's New
 
-Issues and feature requests are welcome! 
+- **📚 Interactive Tutorials**  
+  Learn core data structures—arrays, linked lists, stacks, queues, trees, graphs—with step-by-step tutorials, visual walkthroughs, and live coding environments.
 
-## Installation  
+- **🎨 UI Overhaul**  
+  Redesigned all pages with modern aesthetics, smoother navigation, and full responsiveness across devices.
+
+- **♿ Accessibility & UX Enhancements**  
+  Improved visual consistency, readability, and user interactions for a better, more inclusive experience.
+
+---
+
+## ✨ Features
+
+- Visualize trees, graphs, linked lists, stacks, and queues  
+- Perform key operations: insert, delete, search, and traverse  
+- Real-time animations to show how each structure changes  
+- Basic complexity analysis to understand performance  
+
+---
+
+## 🛠️ Installation
+
+Clone the repository and run the app locally:
+
 ```
 git clone https://github.com/username/data-structures-visualizer.git
 ```
