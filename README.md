@@ -21,7 +21,7 @@ We’ve just launched a major update focused on **learning, usability, and desig
 
 ---
 
-## ✨ Features
+ ✨ Features
 
 - Visualize trees, graphs, linked lists, stacks, and queues  
 - Perform key operations: insert, delete, search, and traverse  
@@ -29,6 +29,17 @@ We’ve just launched a major update focused on **learning, usability, and desig
 - Basic complexity analysis to understand performance  
 
 ---
+## 🤝 Contributing
+Thanks for your interest in contributing! Here's how to get started:
+
+
+1. Fork the repo and create a new branch.
+
+2. Make your changes and test them.
+
+3. Submit a pull request with a clear description.
+
+Got ideas or found a bug? Open an issue or request a feature—contributions are always welcome!
 
 ## 🛠️ Installation
 
