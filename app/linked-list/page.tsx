@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { ArrowLeft, ChevronRight, Info, Plus, Trash, Linkedin, Github } from "lucide-react"
+import { ArrowLeft, ChevronRight, Info, Plus, Trash, BookOpen, ArrowDown, Code, Linkedin, Github } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { CodeBlock } from "@/components/code-block"
 
 // Node class for linked list
 class ListNode {
@@ -129,6 +130,23 @@ class LinkedList {
 
     return result
   }
+
+  // Reverse the linked list
+  reverse() {
+    let prev = null
+    let current = this.head
+    let next = null
+
+    while (current) {
+      next = current.next
+      current.next = prev
+      prev = current
+      current = next
+    }
+
+    this.head = prev
+    return this
+  }
 }
 
 export default function LinkedListPage() {
@@ -144,7 +162,135 @@ export default function LinkedListPage() {
   const [animationPosition, setAnimationPosition] = useState<number | null>(null)
   const [isAnimating, setIsAnimating] = useState(false)
   const [operationDescription, setOperationDescription] = useState("")
+  const [activeOperation, setActiveOperation] = useState<string | null>(null)
+  const [highlightedLines, setHighlightedLines] = useState<number[]>([])
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Define code highlighting ranges for each operation
+  const codeHighlightRanges = {
+    insertAtBeginning: [2, 3, 4, 5, 6],
+    insertAtEnd: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+    insertAtPosition: [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40],
+    delete: [43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61],
+    search: [64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75],
+    reverse: [88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100],
+  }
+
+  // Replace the existing linkedListCode constant with these code snippets
+  const baseLinkedListCode = `class LinkedList {
+  head: ListNode | null
+
+  constructor() {
+    this.head = null
+  }
+
+  // Methods will be shown when an operation is selected
+}`
+
+  const operationCodeSnippets = {
+    insertAtBeginning: `  // Insert at the beginning
+  insertAtBeginning(value: number) {
+    const newNode = new ListNode(value)
+    newNode.next = this.head
+    this.head = newNode
+    return this
+  }`,
+    insertAtEnd: `  // Insert at the end
+  insertAtEnd(value: number) {
+    const newNode = new ListNode(value)
+
+    if (!this.head) {
+      this.head = newNode
+      return this
+    }
+
+    let current = this.head
+    while (current.next) {
+      current = current.next
+    }
+
+    current.next = newNode
+    return this
+  }`,
+    insertAtPosition: `  // Insert at a specific position
+  insertAtPosition(value: number, position: number) {
+    if (position === 0) {
+      return this.insertAtBeginning(value)
+    }
+
+    const newNode = new ListNode(value)
+    let current = this.head
+    let count = 0
+
+    while (current && count < position - 1) {
+      current = current.next
+      count++
+    }
+
+    if (!current) {
+      return this.insertAtEnd(value)
+    }
+
+    newNode.next = current.next
+    current.next = newNode
+    return this
+  }`,
+    delete: `  // Delete a node with a specific value
+  delete(value: number) {
+    if (!this.head) {
+      return this
+    }
+
+    if (this.head.value === value) {
+      this.head = this.head.next
+      return this
+    }
+
+    let current = this.head
+    while (current.next && current.next.value !== value) {
+      current = current.next
+    }
+
+    if (current.next) {
+      current.next = current.next.next
+    }
+
+    return this
+  }`,
+    search: `  // Search for a value
+  search(value: number) {
+    let current = this.head
+    let position = 0
+
+    while (current) {
+      if (current.value === value) {
+        return position
+      }
+      current = current.next
+      position++
+    }
+
+    return -1
+  }`,
+    reverse: `  // Reverse the linked list
+  reverse() {
+    let prev = null
+    let current = this.head
+    let next = null
+
+    while (current) {
+      next = current.next
+      current.next = prev
+      prev = current
+      current = next
+    }
+
+    this.head = prev
+    return this
+  }`,
+  }
+
+  const [displayedCode, setDisplayedCode] = useState(baseLinkedListCode)
 
   // Update the list array whenever the linked list changes
   const updateListArray = () => {
@@ -178,6 +324,14 @@ export default function LinkedListPage() {
     if (operation === "beginning") {
       setOperationDescription("Inserting at the beginning")
       setAnimationPosition(-1)
+      setActiveOperation("insertAtBeginning")
+      setHighlightedLines(codeHighlightRanges.insertAtBeginning)
+      setDisplayedCode(
+        baseLinkedListCode.replace(
+          "  // Methods will be shown when an operation is selected",
+          operationCodeSnippets.insertAtBeginning,
+        ),
+      )
 
       // Step 1: Show the new node
       animationTimeoutRef.current = setTimeout(() => {
@@ -199,6 +353,14 @@ export default function LinkedListPage() {
     } else if (operation === "end") {
       setOperationDescription("Inserting at the end")
       setAnimationPosition(listArray.length)
+      setActiveOperation("insertAtEnd")
+      setHighlightedLines(codeHighlightRanges.insertAtEnd)
+      setDisplayedCode(
+        baseLinkedListCode.replace(
+          "  // Methods will be shown when an operation is selected",
+          operationCodeSnippets.insertAtEnd,
+        ),
+      )
 
       // Step 1: Show the new node
       animationTimeoutRef.current = setTimeout(() => {
@@ -221,6 +383,14 @@ export default function LinkedListPage() {
       const pos = Number(position)
       setOperationDescription(`Inserting at position ${pos}`)
       setAnimationPosition(pos)
+      setActiveOperation("insertAtPosition")
+      setHighlightedLines(codeHighlightRanges.insertAtPosition)
+      setDisplayedCode(
+        baseLinkedListCode.replace(
+          "  // Methods will be shown when an operation is selected",
+          operationCodeSnippets.insertAtPosition,
+        ),
+      )
 
       // Step 1: Show the new node
       animationTimeoutRef.current = setTimeout(() => {
@@ -259,6 +429,14 @@ export default function LinkedListPage() {
     setAnimationNode(numValue)
     setAnimationPosition(position)
     setOperationDescription(`Deleting node with value ${numValue}`)
+    setActiveOperation("delete")
+    setHighlightedLines(codeHighlightRanges.delete)
+    setDisplayedCode(
+      baseLinkedListCode.replace(
+        "  // Methods will be shown when an operation is selected",
+        operationCodeSnippets.delete,
+      ),
+    )
 
     // Step 1: Highlight the node to delete
     setAnimationStep(1)
@@ -288,6 +466,14 @@ export default function LinkedListPage() {
     setIsAnimating(true)
     setAnimationNode(numValue)
     setOperationDescription(`Searching for value ${numValue}`)
+    setActiveOperation("search")
+    setHighlightedLines(codeHighlightRanges.search)
+    setDisplayedCode(
+      baseLinkedListCode.replace(
+        "  // Methods will be shown when an operation is selected",
+        operationCodeSnippets.search,
+      ),
+    )
 
     // Step 1: Start search
     setAnimationStep(1)
@@ -329,6 +515,48 @@ export default function LinkedListPage() {
     animateSearch()
   }
 
+  // Handle reverse operation
+  const handleReverse = () => {
+    if (listArray.length <= 1) return
+
+    clearAnimation()
+    setIsAnimating(true)
+    setOperationDescription("Reversing the linked list")
+    setActiveOperation("reverse")
+    setHighlightedLines(codeHighlightRanges.reverse)
+    setDisplayedCode(
+      baseLinkedListCode.replace(
+        "  // Methods will be shown when an operation is selected",
+        operationCodeSnippets.reverse,
+      ),
+    )
+
+    // Step 1: Highlight the entire list
+    setAnimationStep(1)
+
+    // Step 2: Reverse the list
+    animationTimeoutRef.current = setTimeout(() => {
+      linkedList.reverse()
+      updateListArray()
+      setAnimationStep(2)
+
+      // Step 3: Complete
+      animationTimeoutRef.current = setTimeout(() => {
+        clearAnimation()
+      }, 1000)
+    }, 1000)
+  }
+
+  // Reset highlighted lines when animation completes
+  useEffect(() => {
+    if (!isAnimating) {
+      setHighlightedLines([])
+      if (!activeOperation) {
+        setDisplayedCode(baseLinkedListCode)
+      }
+    }
+  }, [isAnimating, activeOperation])
+
   // Clean up animations on unmount
   useEffect(() => {
     return () => {
@@ -338,6 +566,16 @@ export default function LinkedListPage() {
     }
   }, [])
 
+  // Initialize with some example data
+  useEffect(() => {
+    if (listArray.length === 0) {
+      linkedList.insertAtEnd(10)
+      linkedList.insertAtEnd(20)
+      linkedList.insertAtEnd(30)
+      updateListArray()
+    }
+  }, [linkedList, listArray.length])
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-white/10 bg-black/20">
@@ -346,6 +584,14 @@ export default function LinkedListPage() {
             <ArrowLeft className="h-5 w-5" />
             <span>Back to Home</span>
           </Link>
+          <div className="ml-auto">
+            <Link href="/tutorials/introduction">
+              <Button variant="outline" className="gap-2">
+                <BookOpen className="h-4 w-4" />
+                Tutorial Mode
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -384,20 +630,20 @@ export default function LinkedListPage() {
                               <div key={index} className="flex items-center">
                                 <div
                                   className={`
-                                    flex h-14 w-14 items-center justify-center rounded-full border-2 
-                                    ${
-                                      animationPosition === index && animationStep > 0
-                                        ? animationStep === 1 && animationNode === value
-                                          ? "border-purple-500 bg-purple-900 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)]"
-                                          : animationStep === 2 && animationNode === value
-                                            ? "border-green-500 bg-green-900 text-white shadow-[0_0_15px_rgba(34,197,94,0.5)]"
-                                            : animationStep === 3
-                                              ? "border-red-500 bg-red-900 text-white shadow-[0_0_15px_rgba(239,68,68,0.5)]"
-                                              : "border-primary bg-primary/10"
-                                        : "border-primary bg-primary/10"
-                                    }
-                                    transition-all duration-300
-                                  `}
+                  flex h-14 w-14 items-center justify-center rounded-full border-2 
+                  ${
+                    animationPosition === index && animationStep > 0
+                      ? animationStep === 1 && animationNode === value
+                        ? "border-purple-500 bg-purple-900 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)]"
+                        : animationStep === 2 && animationNode === value
+                          ? "border-green-500 bg-green-900 text-white shadow-[0_0_15px_rgba(34,197,94,0.5)]"
+                          : animationStep === 3
+                            ? "border-red-500 bg-red-900 text-white shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                            : "border-primary bg-primary/10"
+                      : "border-primary bg-primary/10"
+                  }
+                  transition-all duration-300
+                `}
                                 >
                                   {value}
                                 </div>
@@ -455,6 +701,46 @@ export default function LinkedListPage() {
                       )}
                     </CardContent>
                   </Card>
+
+                  {/* Code Block */}
+                  <Card className="card-gradient mt-6">
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <div>
+                        <CardTitle className="text-white flex items-center">
+                          <Code className="mr-2 h-5 w-5" />
+                          Implementation Code
+                        </CardTitle>
+                        <CardDescription className="text-white/70">
+                          {activeOperation
+                            ? `Highlighting: ${activeOperation.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}`
+                            : "Select an operation to reveal its implementation"}
+                        </CardDescription>
+                      </div>
+                      {activeOperation && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setActiveOperation(null)
+                            setHighlightedLines([])
+                            setDisplayedCode(baseLinkedListCode)
+                          }}
+                        >
+                          Reset View
+                        </Button>
+                      )}
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-black/50 rounded-md overflow-hidden border border-white/10">
+                        <CodeBlock
+                          code={displayedCode}
+                          language="typescript"
+                          highlightLines={highlightedLines}
+                          className="max-h-[400px] overflow-auto"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
 
                 <div>
@@ -474,6 +760,9 @@ export default function LinkedListPage() {
                           </TabsTrigger>
                           <TabsTrigger value="search" className="flex-1">
                             Search
+                          </TabsTrigger>
+                          <TabsTrigger value="advanced" className="flex-1">
+                            Advanced
                           </TabsTrigger>
                         </TabsList>
 
@@ -568,6 +857,22 @@ export default function LinkedListPage() {
                             Search
                           </Button>
                         </TabsContent>
+
+                        <TabsContent value="advanced" className="space-y-4">
+                          <div className="space-y-2">
+                            <p className="text-sm text-white/70">Advanced operations for the linked list</p>
+                          </div>
+
+                          <Button
+                            className="w-full"
+                            variant="outline"
+                            onClick={handleReverse}
+                            disabled={isAnimating || listArray.length <= 1}
+                          >
+                            <ArrowDown className="mr-2 h-4 w-4 rotate-180" />
+                            Reverse List
+                          </Button>
+                        </TabsContent>
                       </Tabs>
                     </CardContent>
                   </Card>
@@ -622,6 +927,15 @@ export default function LinkedListPage() {
                             <li>Performing arithmetic operations on long integers</li>
                           </ul>
                         </div>
+
+                        <div className="pt-2 mt-2 border-t border-white/10">
+                          <Link href="/tutorials/introduction">
+                            <Button variant="outline" size="sm" className="w-full">
+                              <BookOpen className="mr-2 h-4 w-4" />
+                              Learn More in Tutorial Mode
+                            </Button>
+                          </Link>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -634,20 +948,22 @@ export default function LinkedListPage() {
       <footer className="border-t border-white/10 py-6 bg-black/20">
         <div className="container px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-center gap-3">
-            <p className="text-center text-sm text-white/60">Data Structures Visualizer - An interactive learning tool created by Pau Aranega Bellido</p>
+            <p className="text-center text-sm text-white/60">
+              Data Structures Visualizer - An interactive learning tool created by Pau Aranega Bellido
+            </p>
             <div className="flex items-center gap-4">
-              <a 
-                href="https://www.linkedin.com/in/pauaranegabellido" 
-                target="_blank" 
+              <a
+                href="https://www.linkedin.com/in/pauaranegabellido"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 text-white/60 hover:text-purple-400 transition-colors"
               >
                 <Linkedin className="h-4 w-4" />
                 <span className="text-sm">LinkedIn</span>
               </a>
-              <a 
-                href="https://github.com/paudefclasspy/data-structures" 
-                target="_blank" 
+              <a
+                href="https://github.com/paudefclasspy/data-structures"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 text-white/60 hover:text-purple-400 transition-colors"
               >
@@ -661,4 +977,3 @@ export default function LinkedListPage() {
     </div>
   )
 }
-

@@ -2,11 +2,12 @@
 
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
-import { ArrowLeft, Info, Plus, ArrowRight, Linkedin, Github} from "lucide-react"
+import { ArrowLeft, Info, Plus, ArrowRight, BookOpen, Linkedin, Github } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
+import { CodeBlock } from "@/components/code-block"
 
 // Queue class
 class Queue {
@@ -54,6 +55,40 @@ class Queue {
   }
 }
 
+// Code snippets for operations
+const CODE_SNIPPETS = {
+  enqueue: `// Enqueue operation - O(1)
+enqueue(item: number) {
+  // Add the item to the end of the array
+  this.items.push(item)
+  return this
+}`,
+  dequeue: `// Dequeue operation - O(1)
+dequeue() {
+  // Check if the queue is empty
+  if (this.isEmpty()) {
+    return null
+  }
+  // Remove and return the first item
+  return this.items.shift()
+}`,
+  peek: `// Peek operation - O(1)
+peek() {
+  // Check if the queue is empty
+  if (this.isEmpty()) {
+    return null
+  }
+  // Return the first item without removing it
+  return this.items[0]
+}`,
+  empty: `// Queue is empty
+// Use the enqueue operation to add items to the queue
+enqueue(item: number) {
+  this.items.push(item)
+  return this
+}`,
+}
+
 export default function QueuePage() {
   const [queue] = useState(new Queue())
   const [queueItems, setQueueItems] = useState<number[]>([])
@@ -63,6 +98,8 @@ export default function QueuePage() {
   const [isAnimating, setIsAnimating] = useState(false)
   const [operationDescription, setOperationDescription] = useState("")
   const [dequeuedItem, setDequeuedItem] = useState<number | null>(null)
+  const [currentCodeSnippet, setCurrentCodeSnippet] = useState<string>(CODE_SNIPPETS.empty)
+  const [currentOperation, setCurrentOperation] = useState<string>("empty")
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Update the queue items whenever the queue changes
@@ -91,6 +128,8 @@ export default function QueuePage() {
     setIsAnimating(true)
     setAnimationItem(numValue)
     setOperationDescription(`Enqueuing ${numValue} to the queue`)
+    setCurrentCodeSnippet(CODE_SNIPPETS.enqueue)
+    setCurrentOperation("enqueue")
 
     // Step 1: Show the new item to the right of the queue
     setAnimationStep(1)
@@ -121,13 +160,15 @@ export default function QueuePage() {
     const frontItem = queue.peek()
     setAnimationItem(frontItem)
     setOperationDescription(`Dequeuing ${frontItem} from the queue`)
+    setCurrentCodeSnippet(CODE_SNIPPETS.dequeue)
+    setCurrentOperation("dequeue")
 
     // Step 1: Highlight the front item
     setAnimationStep(1)
 
     // Step 2: Dequeue the item
     animationTimeoutRef.current = setTimeout(() => {
-      const dequeuedValue = queue.dequeue() ?? null
+      const dequeuedValue = queue.dequeue()
       setDequeuedItem(dequeuedValue)
       updateQueueItems()
       setAnimationStep(2)
@@ -151,6 +192,8 @@ export default function QueuePage() {
     const frontItem = queue.peek()
     setAnimationItem(frontItem)
     setOperationDescription(`Peeking at the front item: ${frontItem}`)
+    setCurrentCodeSnippet(CODE_SNIPPETS.peek)
+    setCurrentOperation("peek")
 
     // Step 1: Highlight the front item
     setAnimationStep(3) // Using a different step for peek
@@ -188,6 +231,14 @@ export default function QueuePage() {
             <ArrowLeft className="h-5 w-5" />
             <span>Back to Home</span>
           </Link>
+          <div className="ml-auto">
+            <Link href="/tutorials/queue/introduction">
+              <Button variant="outline" className="gap-2">
+                <BookOpen className="h-4 w-4" />
+                Tutorial Mode
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -196,15 +247,15 @@ export default function QueuePage() {
           <div className="mx-auto max-w-5xl">
             <div className="flex flex-col gap-8">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">Queue Visualization</h1>
-                <p className="mt-2 text-lg text-white/80">
+                <h1 className="text-3xl font-bold tracking-tight">Queue Visualization</h1>
+                <p className="mt-2 text-lg text-muted-foreground">
                   Visualize operations on a queue data structure (First-In-First-Out)
                 </p>
               </div>
 
               <div className="grid gap-6 md:grid-cols-3">
                 <div className="md:col-span-2">
-                  <Card className="card-gradient">
+                  <Card>
                     <CardHeader>
                       <CardTitle>Visualization</CardTitle>
                       <CardDescription>Visual representation of the queue</CardDescription>
@@ -272,12 +323,30 @@ export default function QueuePage() {
                           </p>
                         </div>
                       )}
+
+                      {/* Code snippet for current operation */}
+                      <div className="mt-4">
+                        <CodeBlock
+                          code={currentCodeSnippet}
+                          language="typescript"
+                          title={`${currentOperation.charAt(0).toUpperCase() + currentOperation.slice(1)} Operation`}
+                          highlightLines={
+                            currentOperation === "enqueue"
+                              ? [3]
+                              : currentOperation === "dequeue"
+                                ? [5, 7]
+                                : currentOperation === "peek"
+                                  ? [5, 7]
+                                  : []
+                          }
+                        />
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
 
                 <div>
-                  <Card className="card-gradient">
+                  <Card>
                     <CardHeader>
                       <CardTitle>Operations</CardTitle>
                       <CardDescription>Perform operations on the queue</CardDescription>
@@ -348,10 +417,10 @@ export default function QueuePage() {
                     </CardContent>
                   </Card>
 
-                  <Card className="mt-6 card-gradient">
+                  <Card className="mt-6">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Info className="h-5 w-5 text-purple-400" />
+                        <Info className="h-5 w-5" />
                         Queue Properties
                       </CardTitle>
                     </CardHeader>
@@ -365,24 +434,24 @@ export default function QueuePage() {
                         </div>
 
                         <div className="space-y-2">
-                          <h4 className="font-medium text-white">Time Complexity</h4>
+                          <h4 className="font-medium">Time Complexity</h4>
                           <div className="flex justify-between">
-                            <span className="text-white/70">Enqueue:</span>
-                            <span className="font-mono text-purple-300">O(1)</span>
+                            <span>Enqueue:</span>
+                            <span className="font-mono">O(1)</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-white/70">Dequeue:</span>
-                            <span className="font-mono text-purple-300">O(1)</span>
+                            <span>Dequeue:</span>
+                            <span className="font-mono">O(1)</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-white/70">Peek:</span>
-                            <span className="font-mono text-purple-300">O(1)</span>
+                            <span>Peek:</span>
+                            <span className="font-mono">O(1)</span>
                           </div>
                         </div>
 
                         <div>
-                          <h4 className="font-medium text-white">Applications</h4>
-                          <ul className="list-disc list-inside text-white/70 mt-1">
+                          <h4 className="font-medium">Applications</h4>
+                          <ul className="list-disc list-inside text-muted-foreground mt-1">
                             <li>Task scheduling</li>
                             <li>Print job management</li>
                             <li>Breadth-first search</li>
@@ -401,20 +470,22 @@ export default function QueuePage() {
       <footer className="border-t border-white/10 py-6 bg-black/20">
         <div className="container px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-center gap-3">
-            <p className="text-center text-sm text-white/60">Data Structures Visualizer - An interactive learning tool created by Pau Aranega Bellido</p>
+            <p className="text-center text-sm text-white/60">
+              Data Structures Visualizer - An interactive learning tool created by Pau Aranega Bellido
+            </p>
             <div className="flex items-center gap-4">
-              <a 
-                href="https://www.linkedin.com/in/pauaranegabellido" 
-                target="_blank" 
+              <a
+                href="https://www.linkedin.com/in/pauaranegabellido"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 text-white/60 hover:text-purple-400 transition-colors"
               >
                 <Linkedin className="h-4 w-4" />
                 <span className="text-sm">LinkedIn</span>
               </a>
-              <a 
-                href="https://github.com/paudefclasspy/data-structures" 
-                target="_blank" 
+              <a
+                href="https://github.com/paudefclasspy/data-structures"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 text-white/60 hover:text-purple-400 transition-colors"
               >
@@ -428,4 +499,3 @@ export default function QueuePage() {
     </div>
   )
 }
-

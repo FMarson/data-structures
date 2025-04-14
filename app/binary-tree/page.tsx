@@ -2,12 +2,13 @@
 
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
-import { ArrowLeft, Info, Plus, Search, Trash, AlertCircle, Linkedin, Github } from "lucide-react"
+import { ArrowLeft, Info, Plus, Search, Trash, AlertCircle, Linkedin, Github, BookOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { CodeBlock } from "@/components/code-block"
 
 // Constants
 const MAX_NODES = 15 // Maximum number of nodes allowed
@@ -304,16 +305,15 @@ class BinarySearchTree {
     const levelHeight = Math.min(70, (canvasHeight - 80) / (height || 1))
     const horizontalSpacing = Math.min(60, (canvasWidth - 80) / (width || 1))
 
-    // Padding from the edges - set to node radius (20) to ensure nodes are fully visible
-    const padding = 20
+    // Padding from the edges
+    const padding = 30
 
     const setPositions = (node: TreeNode | null, x: number, y: number, level: number) => {
       if (!node) return
 
-      // Ensure node is within boundaries.
-      // Subtract 40 (node diameter) from the right and bottom boundaries.
-      node.x = Math.max(padding, Math.min(canvasWidth - padding - 40, x))
-      node.y = Math.max(padding, Math.min(canvasHeight - padding - 40, y))
+      // Ensure node is within boundaries
+      node.x = Math.max(padding, Math.min(canvasWidth - padding, x))
+      node.y = Math.max(padding, Math.min(canvasHeight - padding, y))
 
       // Calculate horizontal offset based on tree balance
       const leftOffset = node.left ? horizontalSpacing * Math.pow(1.3, height - level - 1) : horizontalSpacing
@@ -328,8 +328,8 @@ class BinarySearchTree {
       }
     }
 
-    // Start positioning from the center of the canvas (adjust for node size)
-    setPositions(this.root, canvasWidth / 2 - 20, 40, 0)
+    // Start positioning from the center of the canvas
+    setPositions(this.root, canvasWidth / 2, 40, 0)
   }
 
   // Get all nodes for visualization
@@ -379,6 +379,197 @@ class BinarySearchTree {
   }
 }
 
+// Code snippets for operations
+const CODE_SNIPPETS = {
+  insert: `// Insert operation - O(log n) average
+insert(value: number) {
+  const newNode = new TreeNode(value)
+  
+  // If tree is empty, set new node as root
+  if (!this.root) {
+    this.root = newNode
+    this.nodeCount++
+    return { success: true }
+  }
+  
+  const insertNode = (node: TreeNode, newNode: TreeNode) => {
+    // Go left if value is less than current node
+    if (newNode.value < node.value) {
+      if (node.left === null) {
+        node.left = newNode
+        this.nodeCount++
+        return true
+      } else {
+        return insertNode(node.left, newNode)
+      }
+    }
+    // Go right if value is greater than current node
+    else if (newNode.value > node.value) {
+      if (node.right === null) {
+        node.right = newNode
+        this.nodeCount++
+        return true
+      } else {
+        return insertNode(node.right, newNode)
+      }
+    }
+    // Value already exists, do nothing
+    return false
+  }
+  
+  const inserted = insertNode(this.root, newNode)
+  return { success: inserted }
+}`,
+  search: `// Search operation - O(log n) average
+search(value: number): TreeNode | null {
+  const searchNode = (node: TreeNode | null, value: number) => {
+    // Base case: empty tree or value found
+    if (node === null) {
+      return null
+    }
+    
+    if (value === node.value) {
+      return node
+    }
+    
+    // Recursive case: search left or right subtree
+    if (value < node.value) {
+      return searchNode(node.left, value)
+    }
+    
+    return searchNode(node.right, value)
+  }
+  
+  return searchNode(this.root, value)
+}`,
+  delete: `// Delete operation - O(log n) average
+delete(value: number) {
+  let nodeDeleted = false
+  
+  const removeNode = (node: TreeNode | null, value: number) => {
+    if (node === null) {
+      return null
+    }
+    
+    // Search for the node to delete
+    if (value < node.value) {
+      node.left = removeNode(node.left, value)
+      return node
+    }
+    
+    if (value > node.value) {
+      node.right = removeNode(node.right, value)
+      return node
+    }
+    
+    // Node found, handle deletion based on cases
+    nodeDeleted = true
+    
+    // Case 1: Leaf node (no children)
+    if (node.left === null && node.right === null) {
+      this.nodeCount--
+      return null
+    }
+    
+    // Case 2: Node with only one child
+    if (node.left === null) {
+      this.nodeCount--
+      return node.right
+    }
+    
+    if (node.right === null) {
+      this.nodeCount--
+      return node.left
+    }
+    
+    // Case 3: Node with two children
+    // Find the minimum value in the right subtree
+    let successor = node.right
+    while (successor.left !== null) {
+      successor = successor.left
+    }
+    
+    // Replace node's value with successor's value
+    node.value = successor.value
+    
+    // Delete the successor
+    node.right = removeNode(node.right, successor.value)
+    
+    return node
+  }
+  
+  this.root = removeNode(this.root, value)
+  return { success: nodeDeleted }
+}`,
+  traversal: `// In-order traversal - O(n)
+inOrderTraversal(): number[] {
+  const result: number[] = []
+  
+  const traverse = (node: TreeNode | null) => {
+    if (node !== null) {
+      // First visit left subtree
+      traverse(node.left)
+      // Then visit root
+      result.push(node.value)
+      // Finally visit right subtree
+      traverse(node.right)
+    }
+  }
+  
+  traverse(this.root)
+  return result
+}
+
+// Pre-order traversal - O(n)
+preOrderTraversal(): number[] {
+  const result: number[] = []
+  
+  const traverse = (node: TreeNode | null) => {
+    if (node !== null) {
+      // First visit root
+      result.push(node.value)
+      // Then visit left subtree
+      traverse(node.left)
+      // Finally visit right subtree
+      traverse(node.right)
+    }
+  }
+  
+  traverse(this.root)
+  return result
+}
+
+// Post-order traversal - O(n)
+postOrderTraversal(): number[] {
+  const result: number[] = []
+  
+  const traverse = (node: TreeNode | null) => {
+    if (node !== null) {
+      // First visit left subtree
+      traverse(node.left)
+      // Then visit right subtree
+      traverse(node.right)
+      // Finally visit root
+      result.push(node.value)
+    }
+  }
+  
+  traverse(this.root)
+  return result
+}`,
+  empty: `// Binary Search Tree Operations
+// Use the insert operation to add nodes to the tree
+insert(value: number) {
+  const newNode = new TreeNode(value)
+  if (!this.root) {
+    this.root = newNode
+    this.nodeCount++
+    return { success: true }
+  }
+  // ...
+}`,
+}
+
 export default function BinaryTreePage() {
   const [bst] = useState(() => new BinarySearchTree())
   const [nodes, setNodes] = useState<TreeNode[]>([])
@@ -393,16 +584,17 @@ export default function BinaryTreePage() {
   const [isAnimating, setIsAnimating] = useState(false)
   const [operationDescription, setOperationDescription] = useState("")
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [canvasSize, setCanvasSize] = useState({ width: 600, height: 800 })
+  const [canvasSize, setCanvasSize] = useState({ width: 600, height: 400 })
+  const [currentCodeSnippet, setCurrentCodeSnippet] = useState<string>(CODE_SNIPPETS.empty)
+  const [currentOperation, setCurrentOperation] = useState<string>("empty")
   const canvasRef = useRef<HTMLDivElement>(null)
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Update the tree visualization
   const updateTree = () => {
     if (canvasRef.current) {
-      const width = Math.max(canvasRef.current.clientWidth || 600, bst.getWidth() * 100) // Adjust width based on tree width
-      const height = Math.max(800, bst.getHeight() * 100) // Adjust height based on tree height
-      setCanvasSize({ width, height })
+      const width = canvasRef.current.clientWidth || 600
+      const height = 400
       bst.calculatePositions(width, height)
 
       // Get updated nodes and edges with boundary checking
@@ -435,6 +627,8 @@ export default function BinaryTreePage() {
     clearAnimation()
     setIsAnimating(true)
     setOperationDescription(`Inserting ${numValue} into the tree`)
+    setCurrentCodeSnippet(CODE_SNIPPETS.insert)
+    setCurrentOperation("insert")
 
     // Find the path where the new node will be inserted
     const path = bst.findPath(numValue)
@@ -491,6 +685,8 @@ export default function BinaryTreePage() {
     clearAnimation()
     setIsAnimating(true)
     setOperationDescription(`Searching for ${numValue} in the tree`)
+    setCurrentCodeSnippet(CODE_SNIPPETS.search)
+    setCurrentOperation("search")
 
     // Find the path to the node
     const path = bst.findPath(numValue)
@@ -541,6 +737,8 @@ export default function BinaryTreePage() {
     clearAnimation()
     setIsAnimating(true)
     setOperationDescription(`Deleting ${numValue} from the tree`)
+    setCurrentCodeSnippet(CODE_SNIPPETS.delete)
+    setCurrentOperation("delete")
 
     // Find the path to the node
     const path = bst.findPath(numValue)
@@ -602,6 +800,8 @@ export default function BinaryTreePage() {
   const handleTraversal = () => {
     clearAnimation()
     setIsAnimating(true)
+    setCurrentCodeSnippet(CODE_SNIPPETS.traversal)
+    setCurrentOperation("traversal")
 
     let result: number[] = []
 
@@ -629,8 +829,8 @@ export default function BinaryTreePage() {
   useEffect(() => {
     const updateCanvasSize = () => {
       if (canvasRef.current) {
-        const width = Math.max(canvasRef.current.clientWidth || 600, bst.getWidth() * 100) // Adjust width based on tree width
-        const height = Math.max(800, bst.getHeight() * 100) // Adjust height based on tree height
+        const width = canvasRef.current.clientWidth || 600
+        const height = 400
         setCanvasSize({ width, height })
         updateTree()
       }
@@ -691,9 +891,15 @@ export default function BinaryTreePage() {
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-white/10 bg-black/20">
         <div className="container flex h-16 items-center px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2 text-lg font-semibold">
+          <Link href="/" className="flex items-center gap-2 text-lg font-semibold text-white">
             <ArrowLeft className="h-5 w-5" />
             <span>Back to Home</span>
+          </Link>
+          <Link href="/tutorials/binary-tree/introduction" className="ml-auto">
+            <Button variant="outline" size="sm" className="gap-2">
+              <BookOpen className="h-4 w-4" />
+              Tutorial Mode
+            </Button>
           </Link>
         </div>
       </header>
@@ -703,7 +909,7 @@ export default function BinaryTreePage() {
           <div className="mx-auto max-w-5xl">
             <div className="flex flex-col gap-8">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">Binary Search Tree Visualization</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Binary Search Tree Visualization</h1>
                 <p className="mt-2 text-lg text-muted-foreground">
                   Visualize operations on a binary search tree data structure (Max {MAX_NODES} nodes)
                 </p>
@@ -711,7 +917,7 @@ export default function BinaryTreePage() {
 
               <div className="grid gap-6 md:grid-cols-3">
                 <div className="md:col-span-2">
-                  <Card className="card-gradient">
+                  <Card>
                     <CardHeader>
                       <CardTitle>Visualization</CardTitle>
                       <CardDescription>
@@ -834,30 +1040,53 @@ export default function BinaryTreePage() {
                           <p className="text-sm mt-1">Result: {traversalResult.join(" → ")}</p>
                         </div>
                       )}
+
+                      {/* Code snippet for current operation */}
+                      <div className="mt-4">
+                        <CodeBlock
+                          code={currentCodeSnippet}
+                          language="typescript"
+                          title={`${currentOperation.charAt(0).toUpperCase() + currentOperation.slice(1)} Operation`}
+                          highlightLines={
+                            currentOperation === "insert"
+                              ? [4, 5, 6, 11, 12, 13, 14, 15, 21, 22, 23, 24, 25]
+                              : currentOperation === "search"
+                                ? [4, 5, 8, 9, 13, 14, 17]
+                                : currentOperation === "delete"
+                                  ? [
+                                      10, 11, 12, 16, 17, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
+                                      36, 37, 38, 39, 40, 41, 42,
+                                    ]
+                                  : currentOperation === "traversal"
+                                    ? [6, 7, 8, 9, 10, 11, 21, 22, 23, 24, 25, 26, 36, 37, 38, 39, 40, 41]
+                                    : []
+                          }
+                        />
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
 
                 <div>
-                  <Card className="card-gradient">
+                  <Card>
                     <CardHeader>
                       <CardTitle>Operations</CardTitle>
                       <CardDescription>Perform operations on the binary search tree</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Tabs defaultValue="insert" className="w-full">
+                      <Tabs defaultValue="insert" className="w-full">
                         <TabsList className="w-full">
-                          <TabsTrigger value="insert" className="flex-1 text-sm py-2">
-                          Insert
+                          <TabsTrigger value="insert" className="flex-1">
+                            Insert
                           </TabsTrigger>
-                          <TabsTrigger value="search" className="flex-1 text-sm py-2">
-                          Search
+                          <TabsTrigger value="search" className="flex-1">
+                            Search
                           </TabsTrigger>
-                          <TabsTrigger value="delete" className="flex-1 text-sm py-2">
-                          Delete
+                          <TabsTrigger value="delete" className="flex-1">
+                            Delete
                           </TabsTrigger>
-                          <TabsTrigger value="traversal" className="flex-1 text-sm py-2">
-                          Traversal
+                          <TabsTrigger value="traversal" className="flex-1">
+                            Traversal
                           </TabsTrigger>
                         </TabsList>
 
@@ -959,10 +1188,10 @@ export default function BinaryTreePage() {
                     </CardContent>
                   </Card>
 
-                  <Card className="mt-6 card-gradient">
+                  <Card className="mt-6">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Info className="h-5 w-5 text-purple-400" />
+                        <Info className="h-5 w-5" />
                         Binary Search Tree Properties
                       </CardTitle>
                     </CardHeader>
@@ -970,7 +1199,7 @@ export default function BinaryTreePage() {
                       <div className="space-y-4 text-sm">
                         <div>
                           <h4 className="font-medium">Ordering Property</h4>
-                          <p className="text-white/70 mt-1">
+                          <p className="text-muted-foreground mt-1">
                             For each node, all values in the left subtree are less than the node's value, and all values
                             in the right subtree are greater.
                           </p>
@@ -979,26 +1208,26 @@ export default function BinaryTreePage() {
                         <div className="space-y-2">
                           <h4 className="font-medium">Time Complexity</h4>
                           <div className="flex justify-between">
-                            <span className="text-white/70">Insert:</span>
-                            <span className="font-mono text-purple-300">O(log n) average</span>
+                            <span>Insert:</span>
+                            <span className="font-mono">O(log n) average</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-white/70">Search:</span>
-                            <span className="font-mono text-purple-300">O(log n) average</span>
+                            <span>Search:</span>
+                            <span className="font-mono">O(log n) average</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-white/70">Delete:</span>
-                            <span className="font-mono text-purple-300">O(log n) average</span>
+                            <span>Delete:</span>
+                            <span className="font-mono">O(log n) average</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-white/70">Traversal:</span>
-                            <span className="font-mono text-purple-300">O(n)</span>
+                            <span>Traversal:</span>
+                            <span className="font-mono">O(n)</span>
                           </div>
                         </div>
 
                         <div>
-                          <h4 className="font-medium text-white">Applications</h4>
-                          <ul className="list-disc list-inside text-white/70 mt-1">
+                          <h4 className="font-medium">Applications</h4>
+                          <ul className="list-disc list-inside text-muted-foreground mt-1">
                             <li>Searching and sorting</li>
                             <li>Priority queues</li>
                             <li>Database indexing</li>
@@ -1017,20 +1246,22 @@ export default function BinaryTreePage() {
       <footer className="border-t border-white/10 py-6 bg-black/20">
         <div className="container px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-center gap-3">
-            <p className="text-center text-sm text-white/60">Data Structures Visualizer - An interactive learning tool created by Pau Aranega Bellido</p>
+            <p className="text-center text-sm text-white/60">
+              Data Structures Visualizer - An interactive learning tool created by Pau Aranega Bellido
+            </p>
             <div className="flex items-center gap-4">
-              <a 
-                href="https://www.linkedin.com/in/pauaranegabellido" 
-                target="_blank" 
+              <a
+                href="https://www.linkedin.com/in/pauaranegabellido"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 text-white/60 hover:text-purple-400 transition-colors"
               >
                 <Linkedin className="h-4 w-4" />
                 <span className="text-sm">LinkedIn</span>
               </a>
-              <a 
-                href="https://github.com/paudefclasspy/data-structures" 
-                target="_blank" 
+              <a
+                href="https://github.com/paudefclasspy/data-structures"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 text-white/60 hover:text-purple-400 transition-colors"
               >

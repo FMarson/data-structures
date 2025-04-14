@@ -11,6 +11,9 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
+// First, import the CodeBlock component at the top of the file
+import { CodeBlock } from "@/components/ui/code-block"
+
 // Graph class
 class Graph {
   adjacencyList: Map<string, string[]>
@@ -160,6 +163,17 @@ export default function GraphPage() {
   const [operationDescription, setOperationDescription] = useState("")
   const canvasRef = useRef<HTMLDivElement>(null)
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  // Add a new state for the current code snippet after the other state declarations
+  const [currentCodeSnippet, setCurrentCodeSnippet] = useState<{
+    title: string
+    code: string
+    highlightLines: number[]
+  }>({
+    title: "Graph Operations",
+    code: `// Graph operations will be shown here
+// Perform an operation to see its code implementation`,
+    highlightLines: [],
+  })
 
   // Update the graph visualization
   const updateGraph = () => {
@@ -210,6 +224,19 @@ export default function GraphPage() {
     clearAnimation()
     setOperationDescription(`Adding vertex "${vertexName}"`)
 
+    // Set the code snippet for adding a vertex with highlighted lines
+    setCurrentCodeSnippet({
+      title: "Add Vertex Operation",
+      code: `// Add a vertex to the graph
+addVertex(vertex) {
+  if (!this.adjacencyList.has(vertex)) {
+    this.adjacencyList.set(vertex, []);
+  }
+  return this;
+}`,
+      highlightLines: [3, 4], // Highlight the core operation lines
+    })
+
     graph.addVertex(vertexName)
     updateGraph()
     setVertexName("")
@@ -222,6 +249,26 @@ export default function GraphPage() {
     clearAnimation()
     setOperationDescription(`Adding edge from "${sourceVertex}" to "${targetVertex}"`)
 
+    // Set the code snippet for adding an edge with highlighted lines
+    setCurrentCodeSnippet({
+      title: "Add Edge Operation",
+      code: `// Add an edge between two vertices
+addEdge(vertex1, vertex2) {
+  if (!this.adjacencyList.has(vertex1)) {
+    this.addVertex(vertex1);
+  }
+  if (!this.adjacencyList.has(vertex2)) {
+    this.addVertex(vertex2);
+  }
+
+  this.adjacencyList.get(vertex1)?.push(vertex2);
+  this.adjacencyList.get(vertex2)?.push(vertex1);
+
+  return this;
+}`,
+      highlightLines: [9, 10], // Highlight the core edge creation lines
+    })
+
     graph.addEdge(sourceVertex, targetVertex)
     updateGraph()
   }
@@ -230,6 +277,26 @@ export default function GraphPage() {
   const handleRemoveVertex = (vertex: string) => {
     clearAnimation()
     setOperationDescription(`Removing vertex "${vertex}"`)
+
+    // Set the code snippet for removing a vertex with highlighted lines
+    setCurrentCodeSnippet({
+      title: "Remove Vertex Operation",
+      code: `// Remove a vertex and all its edges
+removeVertex(vertex) {
+  if (!this.adjacencyList.has(vertex)) return this;
+
+  // Remove all edges connected to this vertex
+  for (const adjacentVertex of this.adjacencyList.get(vertex) || []) {
+    this.removeEdge(vertex, adjacentVertex);
+  }
+
+  // Remove the vertex
+  this.adjacencyList.delete(vertex);
+
+  return this;
+}`,
+      highlightLines: [6, 7, 10], // Highlight the edge removal loop and vertex deletion
+    })
 
     graph.removeVertex(vertex)
     updateGraph()
@@ -244,6 +311,26 @@ export default function GraphPage() {
   const handleRemoveEdge = (source: string, target: string) => {
     clearAnimation()
     setOperationDescription(`Removing edge from "${source}" to "${target}"`)
+
+    // Set the code snippet for removing an edge with highlighted lines
+    setCurrentCodeSnippet({
+      title: "Remove Edge Operation",
+      code: `// Remove an edge between two vertices
+removeEdge(vertex1, vertex2) {
+  if (this.adjacencyList.has(vertex1) && this.adjacencyList.has(vertex2)) {
+    this.adjacencyList.set(
+      vertex1, 
+      this.adjacencyList.get(vertex1)?.filter(v => v !== vertex2) || []
+    );
+    this.adjacencyList.set(
+      vertex2, 
+      this.adjacencyList.get(vertex2)?.filter(v => v !== vertex1) || []
+    );
+  }
+  return this;
+}`,
+      highlightLines: [4, 5, 6, 7, 8, 9, 10], // Highlight the filter operations
+    })
 
     graph.removeEdge(source, target)
     updateGraph()
@@ -264,6 +351,61 @@ export default function GraphPage() {
       `${traversalType === "dfs" ? "Depth-First" : "Breadth-First"} Traversal starting from "${traversalStart}"`,
     )
 
+    // Set the code snippet based on traversal type with highlighted lines
+    if (traversalType === "dfs") {
+      setCurrentCodeSnippet({
+        title: "Depth-First Traversal",
+        code: `// Depth-first traversal of the graph
+depthFirstTraversal(start) {
+  const result = [];
+  const visited = new Set();
+
+  const dfs = (vertex) => {
+    if (!vertex) return;
+
+    visited.add(vertex);
+    result.push(vertex);
+
+    for (const neighbor of this.adjacencyList.get(vertex) || []) {
+      if (!visited.has(neighbor)) {
+        dfs(neighbor);
+      }
+    }
+  };
+
+  dfs(start);
+  return result;
+}`,
+        highlightLines: [8, 9, 11, 12, 13], // Highlight the core DFS algorithm parts
+      })
+    } else {
+      setCurrentCodeSnippet({
+        title: "Breadth-First Traversal",
+        code: `// Breadth-first traversal of the graph
+breadthFirstTraversal(start) {
+  const queue = [start];
+  const result = [];
+  const visited = new Set();
+  visited.add(start);
+
+  while (queue.length) {
+    const currentVertex = queue.shift();
+    result.push(currentVertex);
+
+    for (const neighbor of this.adjacencyList.get(currentVertex) || []) {
+      if (!visited.has(neighbor)) {
+        visited.add(neighbor);
+        queue.push(neighbor);
+      }
+    }
+  }
+
+  return result;
+}`,
+        highlightLines: [8, 9, 11, 12, 13, 14], // Highlight the core BFS algorithm parts
+      })
+    }
+
     // Animate the traversal
     let step = 0
     const animateTraversal = () => {
@@ -283,9 +425,8 @@ export default function GraphPage() {
     animateTraversal()
   }
 
-  // Handle node dragging - Mouse Events
-  const handleNodeMouseDown = (nodeId: string, e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault() // Prevent default actions
+  // Handle node dragging
+  const handleNodeMouseDown = (nodeId: string) => {
     setDraggedNode(nodeId)
   }
 
@@ -299,27 +440,21 @@ export default function GraphPage() {
     setNodePositions((prev) => prev.map((node) => (node.id === draggedNode ? { ...node, x, y } : node)))
   }
 
-  // Handle touch events for mobile devices
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!draggedNode || !canvasRef.current || e.touches.length === 0) return
-
-    e.preventDefault() // Prevent scrolling while dragging
-    
-    const rect = canvasRef.current.getBoundingClientRect()
-    const touch = e.touches[0]
-    const x = touch.clientX - rect.left
-    const y = touch.clientY - rect.top
-
-    setNodePositions((prev) => prev.map((node) => (node.id === draggedNode ? { ...node, x, y } : node)))
-  }
-
-  const handleDragEnd = () => {
+  const handleMouseUp = () => {
     setDraggedNode(null)
   }
 
   // Reset the graph
   const handleReset = () => {
     clearAnimation()
+
+    // Reset the code snippet
+    setCurrentCodeSnippet({
+      title: "Graph Operations",
+      code: `// Graph operations will be shown here
+// Perform an operation to see its code implementation`,
+      highlightLines: [],
+    })
 
     // Create a new graph
     for (const vertex of vertices) {
@@ -353,6 +488,28 @@ export default function GraphPage() {
       graph.addEdge("B", "D")
       graph.addEdge("C", "D")
       updateGraph()
+
+      // Set an initial code snippet that shows the Graph class structure
+      setCurrentCodeSnippet({
+        title: "Graph Data Structure",
+        code: `// Graph implementation using adjacency list
+class Graph {
+  constructor() {
+    this.adjacencyList = new Map();
+  }
+
+  // Methods:
+  // - addVertex(vertex)
+  // - addEdge(vertex1, vertex2)
+  // - removeEdge(vertex1, vertex2)
+  // - removeVertex(vertex)
+  // - depthFirstTraversal(start)
+  // - breadthFirstTraversal(start)
+  // - getVertices()
+  // - getEdges()
+}`,
+        highlightLines: [3], // Highlight the constructor line initially
+      })
     }
   }, [graph, vertices.length])
 
@@ -390,11 +547,8 @@ export default function GraphPage() {
                         ref={canvasRef}
                         className="relative h-[400px] border rounded-md bg-muted/30"
                         onMouseMove={handleMouseMove}
-                        onMouseUp={handleDragEnd}
-                        onMouseLeave={handleDragEnd}
-                        onTouchMove={handleTouchMove}
-                        onTouchEnd={handleDragEnd}
-                        onTouchCancel={handleDragEnd}
+                        onMouseUp={handleMouseUp}
+                        onMouseLeave={handleMouseUp}
                       >
                         {/* Edges */}
                         <svg className="absolute inset-0 w-full h-full pointer-events-none">
@@ -443,7 +597,7 @@ export default function GraphPage() {
                               key={node.id}
                               className={`
                                 absolute flex items-center justify-center w-12 h-12 rounded-full 
-                                border-2 cursor-move select-none touch-none
+                                border-2 cursor-move select-none
                                 ${
                                   isActive
                                     ? "border-purple-500 bg-purple-900 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)]"
@@ -457,8 +611,7 @@ export default function GraphPage() {
                                 left: `${node.x - 24}px`,
                                 top: `${node.y - 24}px`,
                               }}
-                              onMouseDown={(e) => handleNodeMouseDown(node.id, e)}
-                              onTouchStart={(e) => handleNodeMouseDown(node.id, e)}
+                              onMouseDown={() => handleNodeMouseDown(node.id)}
                             >
                               {node.id}
 
@@ -517,6 +670,17 @@ export default function GraphPage() {
                         </div>
                       )}
 
+                      {/* Code snippet with highlighted lines */}
+                      <div className="mt-4">
+                        <CodeBlock
+                          code={currentCodeSnippet.code}
+                          title={currentCodeSnippet.title}
+                          language="javascript"
+                          highlightLines={currentCodeSnippet.highlightLines}
+                          className="bg-black/30"
+                        />
+                      </div>
+
                       {/* Reset button */}
                       <div className="mt-4 flex justify-end">
                         <Button variant="outline" size="sm" onClick={handleReset}>
@@ -538,13 +702,13 @@ export default function GraphPage() {
                       <Tabs defaultValue="vertex" className="w-full">
                         <TabsList className="w-full">
                           <TabsTrigger value="vertex" className="flex-1">
-                            Add Vertex
+                            Vertex
                           </TabsTrigger>
                           <TabsTrigger value="edge" className="flex-1">
-                            Add Edge
+                            Edge
                           </TabsTrigger>
                           <TabsTrigger value="traversal" className="flex-1">
-                            Traverse
+                            Traversal
                           </TabsTrigger>
                         </TabsList>
 
@@ -720,20 +884,22 @@ export default function GraphPage() {
       <footer className="border-t border-white/10 py-6 bg-black/20">
         <div className="container px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-center gap-3">
-            <p className="text-center text-sm text-white/60">Data Structures Visualizer - An interactive learning tool created by Pau Aranega Bellido</p>
+            <p className="text-center text-sm text-white/60">
+              Data Structures Visualizer - An interactive learning tool created by Pau Aranega Bellido
+            </p>
             <div className="flex items-center gap-4">
-              <a 
-                href="https://www.linkedin.com/in/pauaranegabellido" 
-                target="_blank" 
+              <a
+                href="https://www.linkedin.com/in/pauaranegabellido"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 text-white/60 hover:text-purple-400 transition-colors"
               >
                 <Linkedin className="h-4 w-4" />
                 <span className="text-sm">LinkedIn</span>
               </a>
-              <a 
-                href="https://github.com/paudefclasspy/data-structures" 
-                target="_blank" 
+              <a
+                href="https://github.com/paudefclasspy/data-structures"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 text-white/60 hover:text-purple-400 transition-colors"
               >
